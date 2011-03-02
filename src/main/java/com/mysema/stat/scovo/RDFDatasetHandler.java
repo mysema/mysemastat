@@ -4,7 +4,16 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,7 +24,19 @@ import org.slf4j.LoggerFactory;
 
 import com.mysema.commons.lang.Assert;
 import com.mysema.converters.DateTimeConverter;
-import com.mysema.rdfbean.model.*;
+import com.mysema.rdfbean.model.DC;
+import com.mysema.rdfbean.model.DCTERMS;
+import com.mysema.rdfbean.model.ID;
+import com.mysema.rdfbean.model.LIT;
+import com.mysema.rdfbean.model.NODE;
+import com.mysema.rdfbean.model.RDF;
+import com.mysema.rdfbean.model.RDFBeanTransaction;
+import com.mysema.rdfbean.model.RDFConnection;
+import com.mysema.rdfbean.model.RDFS;
+import com.mysema.rdfbean.model.Repository;
+import com.mysema.rdfbean.model.STMT;
+import com.mysema.rdfbean.model.UID;
+import com.mysema.rdfbean.model.XSD;
 import com.mysema.rdfbean.owl.OWL;
 import com.mysema.stat.STAT;
 import com.mysema.stat.pcaxis.Dataset;
@@ -31,6 +52,8 @@ import com.mysema.stat.pcaxis.Item;
 public class RDFDatasetHandler implements DatasetHandler {
 
     public static final String DIMENSIONS = "dimensions";
+
+    public static final String ITEMS_NS = "items/";
 
     public static final String DIMENSION_NS = DIMENSIONS + "/";
 
@@ -255,7 +278,7 @@ public class RDFDatasetHandler implements DatasetHandler {
                     addProperty(SCV.dimension, dimensions.get(dimension), properties, md);
                 }
                 // ADD TRIPLES
-                UID id = new UID("item:", XMLID.toXMLID(new String(Hex.encodeHex(md.digest()))));
+                UID id = new UID(baseURI + ITEMS_NS + encodeID(dataset.getName()) + "/", encodeID(new String(Hex.encodeHex(md.digest()))));
                 for (NODE[] property : properties) {
                     add(id, (UID) property[0], property[1], datasetContext);
                 }
