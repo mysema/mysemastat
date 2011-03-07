@@ -12,11 +12,11 @@ import org.junit.Test;
 public class DatasetTest {
 
     private final DefaultDatasetHandler handler = new DefaultDatasetHandler();
-    
+
     private final PCAxisParser parser = new PCAxisParser(handler);
-    
+
     @Test
-    public void IgnoreDots() throws IOException {        
+    public void IgnoreDots() throws IOException {
 
         Dataset dataset = parser.parse("example-1", getClass().getResourceAsStream("/example-1.px"));
 
@@ -68,21 +68,27 @@ public class DatasetTest {
         assertEquals(" X Toimiala tuntematon", dimensions.get(1).getName());
         assertEquals("2007", dimensions.get(2).getName());
     }
-    
+
+    @Test
+    public void Publisher_Available() throws IOException{
+        Dataset dataset = parser.parse("example-1", getClass().getResourceAsStream("/example-1.px"));
+        assertEquals("Tilastokeskus", dataset.getPublisher());
+    }
+
     @Test
     public void Boolean_Entries() throws IOException{
         Dataset dataset = parser.parse("example-3", getClass().getResourceAsStream("/example-copyright.px"));
         assertNotNull(dataset);
         assertTrue(dataset.getData().containsKey(new Key("COPYRIGHT")));
-        
+
     }
-    
+
     @Test
     public void Negative_Values() throws IOException{
         Dataset dataset = parser.parse("example-4", getClass().getResourceAsStream("/example-negative-values.px"));
         List<Item> items = handler.getItems(dataset);
         assertEquals("-155", items.get(302).getValue());
-        
+
     }
-    
+
 }
