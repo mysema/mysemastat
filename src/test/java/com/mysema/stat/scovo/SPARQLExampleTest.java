@@ -58,7 +58,7 @@ private Repository repository;
 
         try {
             NamespaceHandler namespaceHandler = new NamespaceHandler(repository);
-            RDFDatasetHandler handler = new RDFDatasetHandler(repository, namespaceHandler, "http://www.aluesarjat.fi/rdf/");
+            ScovoDatasetHandler handler = new ScovoDatasetHandler(repository, namespaceHandler, "http://www.aluesarjat.fi/rdf/");
             PCAxisParser parser = new PCAxisParser(handler);
 
             parser.parse("example-1", getClass().getResourceAsStream("/example-1.px"));

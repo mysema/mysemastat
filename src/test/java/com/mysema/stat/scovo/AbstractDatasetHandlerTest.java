@@ -39,7 +39,7 @@ public abstract class AbstractDatasetHandlerTest {
     @Test
     public void Parse_and_Query() throws IOException {
         NamespaceHandler namespaceHandler = new NamespaceHandler(repository);
-        RDFDatasetHandler handler = new RDFDatasetHandler(repository, namespaceHandler, "http://www.aluesarjat.fi/rdf/");
+        ScovoDatasetHandler handler = new ScovoDatasetHandler(repository, namespaceHandler, "http://www.aluesarjat.fi/rdf/");
         PCAxisParser parser = new PCAxisParser(handler);
         parser.parse("A01HKIS_Vaestotulot", getClass().getResourceAsStream("/A01HKIS_Vaestotulot.px"));
 

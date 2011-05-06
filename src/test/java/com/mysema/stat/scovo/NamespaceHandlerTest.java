@@ -48,8 +48,8 @@ public class NamespaceHandlerTest {
         namespaces.put(DC.NS, "dc");
         namespaces.put(DCTERMS.NS, "dcterms");
         namespaces.put(STAT.NS, "stat");
-        namespaces.put(baseURI + RDFDatasetHandler.DIMENSION_NS, "dimension");
-        namespaces.put(baseURI + RDFDatasetHandler.DATASET_CONTEXT_BASE, "dataset");
+        namespaces.put(baseURI + ScovoDatasetHandler.DIMENSION_NS, "dimension");
+        namespaces.put(baseURI + ScovoDatasetHandler.DATASET_CONTEXT_BASE, "dataset");
         namespaceHandler.addNamespaces(namespaces);
     }
 

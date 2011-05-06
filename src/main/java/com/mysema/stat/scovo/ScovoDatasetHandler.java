@@ -28,7 +28,7 @@ import com.mysema.stat.pcaxis.Item;
  * @author sasa
  *
  */
-public class RDFDatasetHandler implements DatasetHandler {
+public class ScovoDatasetHandler implements DatasetHandler {
 
     public static final String DIMENSIONS = "dimensions";
 
@@ -40,41 +40,43 @@ public class RDFDatasetHandler implements DatasetHandler {
 
     public static final String DATASET_CONTEXT_BASE = DATASETS + "#";
 
-    private static final String UNITS_LOCAL_NAME = "Yksikk\u00F6";
+    protected static final String UNITS_LOCAL_NAME = "Yksikk\u00F6";
 
-    private static final Logger logger = LoggerFactory.getLogger(RDFDatasetHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScovoDatasetHandler.class);
 
-    private static final int TX_TIMEOUT = -1;
+    protected static final int TX_TIMEOUT = -1;
 
-    private static final int TX_ISOLATION = Connection.TRANSACTION_READ_COMMITTED;
+    protected static final int TX_ISOLATION = Connection.TRANSACTION_READ_COMMITTED;
 
-    private static final Pattern AREA_NAME_PATTERN = Pattern.compile("[\\d\\s]+(.*)");
+    protected static final Pattern AREA_NAME_PATTERN = Pattern.compile("[\\d\\s]+(.*)");
 
-    private static final DateTimeConverter DATE_TIME_CONVERTER = new DateTimeConverter();
+    protected static final DateTimeConverter DATE_TIME_CONVERTER = new DateTimeConverter();
 
-    private static final Map<String, LIT> DECIMAL_CACHE = new HashMap<String, LIT>();
+    protected static final Map<String, LIT> DECIMAL_CACHE = new HashMap<String, LIT>();
 
-    private final String baseURI;
+    protected final String baseURI;
 
-    private Set<STMT> statements;
+    protected final String dimensionBase;
 
-    private RDFConnection conn;
+    protected Set<STMT> statements;
 
-    private final Repository repository;
+    protected RDFConnection conn;
 
-    private final NamespaceHandler namespaceHandler;
+    protected final Repository repository;
 
-    private Map<Dimension, UID> dimensions;
+    protected final NamespaceHandler namespaceHandler;
 
-    private List<UID> datasets;
+    protected Map<Dimension, UID> dimensions;
 
-    private static final int batchSize = 2000;
+    protected List<UID> datasets;
 
-    private int itemCount = 0;
+    protected static final int batchSize = 2000;
 
-    private int skippedCount = 0;
+    protected int itemCount = 0;
 
-    private Set<String> ignoredValues = Collections.singleton("\".\"");
+    protected int skippedCount = 0;
+
+    protected Set<String> ignoredValues = Collections.singleton("\".\"");
 
     static {
         for (int i=0; i <= 1000; i++) {
@@ -83,31 +85,32 @@ public class RDFDatasetHandler implements DatasetHandler {
         }
     }
 
-    public RDFDatasetHandler(Repository repository, NamespaceHandler namespaceHandler, String baseURI) {
+    public ScovoDatasetHandler(Repository repository, NamespaceHandler namespaceHandler, String baseURI) {
         this.repository = repository;
         this.namespaceHandler = namespaceHandler;
         this.baseURI = baseURI;
         Assert.notNull(baseURI, "baseURI");
         Assert.assertThat(baseURI.endsWith("/"), "baseURI doesn't end with /", null, null);
+        this.dimensionBase = baseURI + DIMENSION_NS;
     }
 
     private void add(ID subject, UID predicate, DateTime dateTime, UID context) {
         add(subject, predicate, new LIT(DATE_TIME_CONVERTER.toString(dateTime), XSD.dateTime), context);
     }
 
-    private void add(ID subject, UID predicate, String name, UID context) {
+    protected void add(ID subject, UID predicate, String name, UID context) {
         add(subject, predicate, new LIT(name), context);
     }
 
     public static UID datasetUID(String baseURI, String datasetName) {
-        return new UID(baseURI + DATASET_CONTEXT_BASE, RDFDatasetHandler.encodeID(datasetName));
+        return new UID(baseURI + DATASET_CONTEXT_BASE, ScovoDatasetHandler.encodeID(datasetName));
     }
 
-    public static String encodeID(String name) {
+    protected static String encodeID(String name) {
         return XMLID.toXMLID(name);
     }
 
-    private void add(ID subject, UID predicate, NODE object, UID context) {
+    protected void add(ID subject, UID predicate, NODE object, UID context) {
         statements.add( new STMT(subject, predicate, object, context) );
     }
 
@@ -170,7 +173,7 @@ public class RDFDatasetHandler implements DatasetHandler {
         namespaceHandler.addNamespaces(namespaces);
     }
 
-    private void addDimensionType(DimensionType type, UID datasetsContext,
+    protected void addDimensionType(DimensionType type, UID datasetsContext,
             UID datasetUID, UID domainContext, UID dimensionUID,
             Map<String, String> namespaces) {
         String dimensionNs = dimensionUID.getId() + "#";
@@ -204,7 +207,7 @@ public class RDFDatasetHandler implements DatasetHandler {
         }
     }
 
-    private String getAreaName(String name) {
+    protected String getAreaName(String name) {
         Matcher m = AREA_NAME_PATTERN.matcher(name);
         if (m.find()) {
             return m.group(1);
@@ -213,7 +216,7 @@ public class RDFDatasetHandler implements DatasetHandler {
         }
     }
 
-    private void flush() {
+    protected void flush() {
         long start = System.currentTimeMillis();
         int size = statements.size();
         RDFBeanTransaction tx = conn.beginTransaction(false, TX_TIMEOUT, TX_ISOLATION);
@@ -257,7 +260,7 @@ public class RDFDatasetHandler implements DatasetHandler {
                 addProperty(SCV.dataset, datasetContext, properties, md);
 
                 for (Dimension dimension : item.getDimensions()) {
-                    addProperty(SCV.dimension, dimensions.get(dimension), properties, md);
+                    addProperty(getDimensionProperty(dimension), dimensions.get(dimension), properties, md);
                 }
                 // ADD TRIPLES
                 UID id = new UID(baseURI + ITEMS_NS + encodeID(dataset.getName()) + "/", encodeID(new String(Hex.encodeHex(md.digest()))));
@@ -278,7 +281,7 @@ public class RDFDatasetHandler implements DatasetHandler {
         }
     }
 
-    private void addDecimal(UID predicate, String object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
+    protected void addDecimal(UID predicate, String object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
         LIT value = DECIMAL_CACHE.get(object);
         if (value == null){
             value = new LIT(object, XSD.decimalType);
@@ -286,11 +289,11 @@ public class RDFDatasetHandler implements DatasetHandler {
         addProperty(predicate, value, properties, md);
     }
 
-    private void addProperty(UID predicate, String object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
+    protected void addProperty(UID predicate, String object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
         addProperty(predicate, new LIT(object), properties, md);
     }
 
-    private void addProperty(UID predicate, NODE object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
+    protected void addProperty(UID predicate, NODE object, List<NODE[]> properties, MessageDigest md) throws UnsupportedEncodingException {
         properties.add(new NODE[] { predicate, object } );
         md.update(predicate.getId().getBytes("UTF-8"));
         md.update(object.toString().getBytes("UTF-8"));
@@ -326,6 +329,10 @@ public class RDFDatasetHandler implements DatasetHandler {
             flush();
             conn.close();
         }
+    }
+
+    protected UID getDimensionProperty(Dimension dimension) {
+        return SCV.dimension;
     }
 
 
