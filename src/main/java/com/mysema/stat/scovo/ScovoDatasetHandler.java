@@ -138,7 +138,7 @@ public class ScovoDatasetHandler implements DatasetHandler {
         add(datasetUID, DCTERMS.created, new DateTime(), datasetsContext);
 
         UID domainContext = new UID(baseURI,  DIMENSIONS);
-        String dimensionBase = baseURI + DIMENSION_NS;
+//        String dimensionBase = baseURI + DIMENSION_NS;
         UID unitDimension = new UID(dimensionBase, encodeID(UNITS_LOCAL_NAME));
         boolean unitFound = false;
 
