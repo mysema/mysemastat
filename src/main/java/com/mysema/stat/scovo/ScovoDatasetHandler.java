@@ -25,9 +25,12 @@ import com.mysema.stat.pcaxis.DimensionType;
 import com.mysema.stat.pcaxis.Item;
 
 /**
+ * PCAxis to Scovo conversion for Helsinki Region Infoshare (HRI). This can be used as an example 
+ * for other use-case specific converters. 
+ * 
  * @author sasa
- *
  */
+// TODO: Change name to reflect the fact that this is HRI specific parser
 public class ScovoDatasetHandler implements DatasetHandler {
 
     public static final String DIMENSIONS = "dimensions";
@@ -138,7 +141,6 @@ public class ScovoDatasetHandler implements DatasetHandler {
         add(datasetUID, DCTERMS.created, new DateTime(), datasetsContext);
 
         UID domainContext = new UID(baseURI,  DIMENSIONS);
-//        String dimensionBase = baseURI + DIMENSION_NS;
         UID unitDimension = new UID(dimensionBase, encodeID(UNITS_LOCAL_NAME));
         boolean unitFound = false;
 
